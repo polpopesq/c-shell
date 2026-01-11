@@ -7,31 +7,66 @@ enum Command
 {
   EXIT,
   ECHO,
+  TYPE,
   UNKNOWN
 };
 
 enum Command get_command_type(const char *s)
 {
   if (strcmp(s, "exit") == 0)
-  {
     return EXIT;
-  }
   if (strcmp(s, "echo") == 0)
-  {
     return ECHO;
-  }
+  if (strcmp(s, "type") == 0)
+    return TYPE;
   return UNKNOWN;
+}
+
+typedef struct
+{
+  char *cmd;
+  char *args;
+  enum Command type;
+} ParsedCommand;
+
+ParsedCommand parse_command(char *line)
+{
+  line[strcspn(line, "\n")] = '\0';
+
+  ParsedCommand out = {0};
+  char *space = strchr(line, " ");
+
+  if (space)
+  {
+    *space = '\0';
+    out.cmd = line;
+    out.args = space + 1;
+  }
+  else
+  {
+    out.cmd = line;
+    out.args = NULL;
+  }
+
+  out.type = get_command_type(out.cmd);
+  return out;
 }
 
 void echo(const char *string)
 {
-  char *saveptr;
-  char *token = strtok_r(string, " ", &saveptr);
-  while ((token = strtok_r(NULL, " ", &saveptr)))
+  char *rest = string;
+  char *token;
+  while ((token = strtok_r(rest, " ", &rest)))
   {
     printf("%s ", token);
   }
   printf("\n");
+}
+
+void type(const char *string)
+{
+  printf(string);
+  printf(get_command_type(string) == UNKNOWN ? ": not found\n" : " is a shell function\n");
 }
 
 int main(int argc, char *argv[])
@@ -46,21 +81,19 @@ int main(int argc, char *argv[])
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
 
-    char command[64];
-    if (sscanf(buffer, "%s", command) != EOF)
+    ParsedCommand command = parse_command(buffer);
+    switch (command.type)
     {
-      enum Command command_type = get_command_type(command);
-      switch (command_type)
-      {
-      case EXIT:
-        return 0;
-      case ECHO:
-        echo(buffer);
-        break;
-      default:
-        printf("%s: command not found\n", command);
-        break;
-      }
+    case EXIT:
+      return 0;
+    case ECHO:
+      echo(command.args);
+      break;
+    case TYPE:
+      type(command.args);
+    default:
+      printf("%s: command not found\n", command);
+      break;
     }
   }
   return 0;
