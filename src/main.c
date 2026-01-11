@@ -34,7 +34,7 @@ ParsedCommand parse_command(char *line)
   line[strcspn(line, "\n")] = '\0';
 
   ParsedCommand out = {0};
-  char *space = strchr(line, " ");
+  char *space = strchr(line, ' ');
 
   if (space)
   {
@@ -54,19 +54,34 @@ ParsedCommand parse_command(char *line)
 
 void echo(const char *string)
 {
-  char *rest = string;
+  if (!string)
+    return;
+
+  char *copy = strdup(string);
+  if (!copy)
+    return;
+
+  char *rest = copy;
   char *token;
+
   while ((token = strtok_r(rest, " ", &rest)))
   {
     printf("%s ", token);
   }
   printf("\n");
+
+  free(copy);
 }
 
 void type(const char *string)
 {
-  printf(string);
-  printf(get_command_type(string) == UNKNOWN ? ": not found\n" : " is a shell function\n");
+  if (!string)
+    return;
+
+  if (get_command_type(string) == UNKNOWN)
+    printf("%s: not found\n", string);
+  else
+    printf("%s is a shell builtin\n", string);
 }
 
 int main(int argc, char *argv[])
@@ -91,8 +106,9 @@ int main(int argc, char *argv[])
       break;
     case TYPE:
       type(command.args);
+      break;
     default:
-      printf("%s: command not found\n", command);
+      printf("%s: command not found\n", command.cmd);
       break;
     }
   }
