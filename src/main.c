@@ -1,7 +1,17 @@
-#define _POSIX_C_SOURCE 200809L // to show strtok_r definition
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <stdbool.h>
+
+#define _POSIX_C_SOURCE 200809L // to show strtok_r definition
+#ifdef _WIN32
+#define PATH_LIST_SEPARATOR ";"
+#else
+#define PATH_LIST_SEPARATOR ":"
+#endif
 
 enum Command
 {
@@ -52,36 +62,97 @@ ParsedCommand parse_command(char *line)
   return out;
 }
 
-void echo(const char *string)
+bool check_dir_command(const char *dir_token, const char *command)
 {
-  if (!string)
-    return;
+  DIR *dp = opendir(dir_token);
+  if (dp == NULL)
+    return false;
 
-  char *copy = strdup(string);
-  if (!copy)
-    return;
+  struct dirent *entry;
+  char path[1024];
 
-  char *rest = copy;
-  char *token;
-
-  while ((token = strtok_r(rest, " ", &rest)))
+  while ((entry = readdir(dp)) != NULL)
   {
-    printf("%s ", token);
-  }
-  printf("\n");
+    if (strcmp(entry->d_name, command) != 0)
+      continue;
 
-  free(copy);
+    snprintf(path, sizeof(path), "%s/%s", dir_token, entry->d_name);
+
+    if (access(path, X_OK) == 0)
+    {
+      closedir(dp);
+      return true;
+    }
+  }
+
+  closedir(dp);
+  return false;
 }
 
-void type(const char *string)
+char *path_lookup(const char *PATH, const char *command)
 {
-  if (!string)
+  if (!PATH || !command)
+    return NULL;
+
+  const char *current = PATH;
+
+  while (*current)
+  {
+    current += strspn(current, PATH_LIST_SEPARATOR);
+    if (!*current)
+      break;
+
+    int len = strcspn(current, PATH_LIST_SEPARATOR);
+
+    char *dir = strndup(current, len);
+    if (!dir)
+      return NULL;
+
+    char fullpath[512];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", dir, command);
+
+    if (access(fullpath, X_OK) == 0)
+    {
+      free(dir);
+      return strdup(fullpath);
+    }
+
+    free(dir);
+    current += len;
+  }
+
+  return NULL;
+}
+
+void type(const char *s)
+{
+  if (!s)
     return;
 
-  if (get_command_type(string) == UNKNOWN)
-    printf("%s: not found\n", string);
+  if (get_command_type(s) == UNKNOWN)
+  {
+    const char *PATH = getenv("PATH");
+    if (!PATH)
+    {
+      printf("%s: not found\n", s);
+      return;
+    }
+
+    char *result = path_lookup(PATH, s);
+    if (!result)
+    {
+      printf("%s: not found\n", s);
+    }
+    else
+    {
+      printf("%s is %s\n", s, result);
+      free(result);
+    }
+  }
   else
-    printf("%s is a shell builtin\n", string);
+  {
+    printf("%s is a shell builtin\n", s);
+  }
 }
 
 int main(int argc, char *argv[])
@@ -102,7 +173,7 @@ int main(int argc, char *argv[])
     case EXIT:
       return 0;
     case ECHO:
-      echo(command.args);
+      printf("%s\n", command.args);
       break;
     case TYPE:
       type(command.args);
