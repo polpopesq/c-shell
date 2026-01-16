@@ -20,6 +20,7 @@ enum Command
   EXIT,
   ECHO,
   TYPE,
+  PWD,
   OTHER
 };
 
@@ -31,6 +32,8 @@ enum Command get_command_type(const char *s)
     return ECHO;
   if (strcmp(s, "type") == 0)
     return TYPE;
+  if (strcmp(s, "pwd") == 0)
+    return PWD;
   return OTHER;
 }
 
@@ -154,6 +157,19 @@ static int exec_prog(char *const argv[])
   return -1;
 }
 
+static void pwd(void)
+{
+  char *buffer = getcwd(NULL, 0);
+  if (buffer == NULL)
+  {
+    perror("getcwd");
+    return;
+  }
+
+  printf("%s\n", buffer);
+  free(buffer);
+}
+
 int main(int argc, char *argv[])
 {
   // Flush after every printf
@@ -181,6 +197,9 @@ int main(int argc, char *argv[])
       break;
     case TYPE:
       type(command.argv[1], PATH);
+      break;
+    case PWD:
+      pwd();
       break;
     default:
       if (path_lookup(PATH, command.cmd) == NULL)
