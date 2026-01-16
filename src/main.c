@@ -20,7 +20,7 @@ enum Command
   EXIT,
   ECHO,
   TYPE,
-  UNKNOWN
+  OTHER
 };
 
 enum Command get_command_type(const char *s)
@@ -31,7 +31,7 @@ enum Command get_command_type(const char *s)
     return ECHO;
   if (strcmp(s, "type") == 0)
     return TYPE;
-  return UNKNOWN;
+  return OTHER;
 }
 
 typedef struct
@@ -48,13 +48,14 @@ ParsedCommand parse_command(char *line)
 
   ParsedCommand out = {0};
 
+  char *saveptr;
   int i = 0;
-  char *token = strtok(line, " ");
+  char *token = strtok_r(line, " ", &saveptr);
 
   while (token && i < 15)
   {
     out.argv[i++] = token;
-    token = strtok(NULL, " ");
+    token = strtok_r(NULL, " ", &saveptr);
   }
   out.argv[i] = NULL;
   out.argc = i;
@@ -68,81 +69,41 @@ ParsedCommand parse_command(char *line)
   return out;
 }
 
-bool check_dir_command(const char *dir_token, const char *command)
-{
-  DIR *dp = opendir(dir_token);
-  if (dp == NULL)
-    return false;
-
-  struct dirent *entry;
-  char path[1024];
-
-  while ((entry = readdir(dp)) != NULL)
-  {
-    if (strcmp(entry->d_name, command) != 0)
-      continue;
-
-    snprintf(path, sizeof(path), "%s/%s", dir_token, entry->d_name);
-
-    if (access(path, X_OK) == 0)
-    {
-      closedir(dp);
-      return true;
-    }
-  }
-
-  closedir(dp);
-  return false;
-}
-
 char *path_lookup(const char *PATH, const char *command)
 {
-  if (!PATH || !command)
+  if (!PATH || !command || !*command)
     return NULL;
 
-  const char *current = PATH;
+  char *path_copy = strdup(PATH);
+  if (!path_copy)
+    return NULL;
 
-  while (*current)
+  char *saveptr = NULL;
+  char *dir = strtok_r(path_copy, PATH_LIST_SEPARATOR, &saveptr);
+
+  while (dir)
   {
-    current += strspn(current, PATH_LIST_SEPARATOR);
-    if (!*current)
-      break;
-
-    int len = strcspn(current, PATH_LIST_SEPARATOR);
-
-    char *dir = strndup(current, len);
-    if (!dir)
-      return NULL;
-
-    char fullpath[512];
+    char fullpath[1024];
     snprintf(fullpath, sizeof(fullpath), "%s/%s", dir, command);
 
     if (access(fullpath, X_OK) == 0)
     {
-      free(dir);
-      return strdup(fullpath);
+      char *result = strdup(fullpath);
+      free(path_copy);
+      return result;
     }
 
-    free(dir);
-    current += len;
+    dir = strtok_r(NULL, PATH_LIST_SEPARATOR, &saveptr);
   }
 
+  free(path_copy);
   return NULL;
 }
 
 void type(const char *s, const char *PATH)
 {
-  if (!s)
-    return;
-
-  if (get_command_type(s) == UNKNOWN)
+  if (get_command_type(s) == OTHER)
   {
-    if (!PATH)
-    {
-      printf("%s: not found\n", s);
-      return;
-    }
-
     char *result = path_lookup(PATH, s);
     if (!result)
     {
@@ -173,7 +134,7 @@ static int exec_prog(char *const argv[])
   if (pid == 0)
   {
     execvp(argv[0], argv);
-    perror("execvp failed");
+    fprintf(stderr, "%s: command not found\n", argv[0]);
     _exit(127);
   }
 
