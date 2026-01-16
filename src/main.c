@@ -21,6 +21,7 @@ enum Command
   ECHO,
   TYPE,
   PWD,
+  CD,
   OTHER
 };
 
@@ -34,6 +35,8 @@ enum Command get_command_type(const char *s)
     return TYPE;
   if (strcmp(s, "pwd") == 0)
     return PWD;
+  if (strcmp(s, "cd") == 0)
+    return CD;
   return OTHER;
 }
 
@@ -103,7 +106,7 @@ char *path_lookup(const char *PATH, const char *command)
   return NULL;
 }
 
-void type(const char *s, const char *PATH)
+void exec_type(const char *s, const char *PATH)
 {
   if (get_command_type(s) == OTHER)
   {
@@ -157,7 +160,7 @@ static int exec_prog(char *const argv[])
   return -1;
 }
 
-static void pwd(void)
+static void exec_pwd(void)
 {
   char *buffer = getcwd(NULL, 0);
   if (buffer == NULL)
@@ -168,6 +171,16 @@ static void pwd(void)
 
   printf("%s\n", buffer);
   free(buffer);
+}
+
+static void exec_cd(const char *target)
+{
+  char msg[1024];
+
+  snprintf(msg, sizeof(msg), "cd: %s", target);
+
+  if (chdir(target) != 0)
+    perror(msg);
 }
 
 int main(int argc, char *argv[])
@@ -196,10 +209,20 @@ int main(int argc, char *argv[])
       printf("\n");
       break;
     case TYPE:
-      type(command.argv[1], PATH);
+      exec_type(command.argv[1], PATH);
       break;
     case PWD:
-      pwd();
+      exec_pwd();
+      break;
+    case CD:
+      if (command.argc > 2)
+      {
+        printf("%s: too many arguments\n", command.argv[0]);
+      }
+      else
+      {
+        exec_cd(command.argv[1]);
+      }
       break;
     default:
       if (path_lookup(PATH, command.cmd) == NULL)
