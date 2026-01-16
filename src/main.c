@@ -175,12 +175,17 @@ static void exec_pwd(void)
 
 static void exec_cd(const char *target)
 {
-  char msg[1024];
-
-  snprintf(msg, sizeof(msg), "cd: %s", target);
+  if (strcmp(target, "~") == 0)
+  {
+    target = getenv("HOME");
+  }
 
   if (chdir(target) != 0)
+  {
+    char msg[1024];
+    snprintf(msg, sizeof(msg), "cd: %s", target);
     perror(msg);
+  }
 }
 
 int main(int argc, char *argv[])
