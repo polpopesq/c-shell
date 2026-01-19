@@ -48,66 +48,90 @@ typedef struct
   enum Command type;
 } ParsedCommand;
 
+typedef enum
+{
+  ST_NORMAL,
+  ST_SQUOTE,
+  ST_DQUOTE,
+} ParseState;
+
+static void push_arg(ParsedCommand *out, char *buffer, int *bi)
+{
+  buffer[*bi] = '\0';
+  out->argv[out->argc++] = strdup(buffer);
+  *bi = 0;
+}
+
 ParsedCommand parse_command(char *line)
 {
-  line[strcspn(line, "\n")] = '\0';
-
   ParsedCommand out = {0};
-
-  int argc = 0;
-  char *p = line;
-  char buffer[256];
+  out.cmd = strdup(line);
+  char buffer[512];
   int bi = 0;
 
-  int in_quote = 0;
+  ParseState st = ST_NORMAL;
+  char *p = line;
 
-  while (*p && argc < 15)
+  while (*p != '\0')
   {
-    // skip leading spaces if not building a token
-    if (bi == 0)
+    char c = *p++;
+    switch (st)
     {
-      while (*p == ' ')
-        p++;
-      if (*p == '\0')
-        break;
+    case ST_NORMAL:
+      if (c == ' ')
+      {
+        if (bi > 0)
+        {
+          push_arg(&out, buffer, &bi);
+        }
+      }
+      else if (c == '\'')
+      {
+        st = ST_SQUOTE;
+      }
+      else if (c == '"')
+      {
+        st = ST_DQUOTE;
+      }
+      else
+      {
+        buffer[bi++] = c;
+      }
+      break;
+    case ST_SQUOTE:
+      if (c == '\'')
+      {
+        st = ST_NORMAL;
+      }
+      else
+      {
+        buffer[bi++] = c;
+      }
+      break;
+    case ST_DQUOTE:
+      if (c == '"')
+      {
+        st = ST_NORMAL;
+      }
+      else
+      {
+        buffer[bi++] = c;
+      }
+      break;
     }
-
-    if (*p == '\'') // if '
-    {
-      in_quote = !in_quote; // toggle quote state
-      p++;
-      continue;
-    }
-
-    if (!in_quote && *p == ' ') // if space outside quote <=> separate argument
-    {
-      buffer[bi] = '\0';
-      out.argv[argc++] = strdup(buffer);
-      bi = 0;
-
-      while (*p == ' ')
-        p++; // skip extra spaces
-      continue;
-    }
-
-    buffer[bi++] = *p++;
   }
 
-  // last argument
   if (bi > 0)
   {
-    buffer[bi] = '\0';
-    out.argv[argc++] = strdup(buffer);
+    push_arg(&out, buffer, &bi);
   }
 
-  out.argv[argc] = NULL;
-  out.argc = argc;
+  out.argv[out.argc] = NULL;
 
-  if (argc > 0)
-  {
-    out.cmd = out.argv[0];
-    out.type = get_command_type(out.cmd);
-  }
+  if (out.argc > 0)
+    out.type = get_command_type(out.argv[0]);
+  else
+    out.type = OTHER;
 
   return out;
 }
@@ -271,9 +295,9 @@ int main(int argc, char *argv[])
       }
       break;
     default:
-      if (path_lookup(PATH, command.cmd) == NULL)
+      if (path_lookup(PATH, command.argv[0]) == NULL)
       {
-        printf("%s: command not found\n", command.cmd);
+        printf("%s: command not found\n", command.argv[0]);
       }
       else
       {
