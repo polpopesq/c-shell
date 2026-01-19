@@ -54,19 +54,56 @@ ParsedCommand parse_command(char *line)
 
   ParsedCommand out = {0};
 
-  char *saveptr;
-  int i = 0;
-  char *token = strtok_r(line, " ", &saveptr);
+  int argc = 0;
+  char *p = line;
+  char buffer[256];
+  int bi = 0;
 
-  while (token && i < 15)
+  int in_quote = 0;
+
+  while (*p && argc < 15)
   {
-    out.argv[i++] = token;
-    token = strtok_r(NULL, " ", &saveptr);
-  }
-  out.argv[i] = NULL;
-  out.argc = i;
+    // skip leading spaces if not building a token
+    if (bi == 0)
+    {
+      while (*p == ' ')
+        p++;
+      if (*p == '\0')
+        break;
+    }
 
-  if (i > 0)
+    if (*p == '\'') // if '
+    {
+      in_quote = !in_quote; // toggle quote state
+      p++;
+      continue;
+    }
+
+    if (!in_quote && *p == ' ') // if space outside quote <=> separate argument
+    {
+      buffer[bi] = '\0';
+      out.argv[argc++] = strdup(buffer);
+      bi = 0;
+
+      while (*p == ' ')
+        p++; // skip extra spaces
+      continue;
+    }
+
+    buffer[bi++] = *p++;
+  }
+
+  // last argument
+  if (bi > 0)
+  {
+    buffer[bi] = '\0';
+    out.argv[argc++] = strdup(buffer);
+  }
+
+  out.argv[argc] = NULL;
+  out.argc = argc;
+
+  if (argc > 0)
   {
     out.cmd = out.argv[0];
     out.type = get_command_type(out.cmd);
@@ -220,7 +257,11 @@ int main(int argc, char *argv[])
       exec_pwd();
       break;
     case CD:
-      if (command.argc > 2)
+      if (command.argc < 2)
+      {
+        exec_cd("~");
+      }
+      else if (command.argc > 2)
       {
         printf("%s: too many arguments\n", command.argv[0]);
       }
