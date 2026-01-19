@@ -53,6 +53,7 @@ typedef enum
   ST_NORMAL,
   ST_SQUOTE,
   ST_DQUOTE,
+  ST_ESCAPE
 } ParseState;
 
 static void push_arg(ParsedCommand *out, char *buffer, int *bi)
@@ -70,6 +71,7 @@ ParsedCommand parse_command(char *line)
   int bi = 0;
 
   ParseState st = ST_NORMAL;
+  ParseState prev = ST_NORMAL;
   char *p = line;
 
   while (*p != '\0')
@@ -93,6 +95,11 @@ ParsedCommand parse_command(char *line)
       {
         st = ST_DQUOTE;
       }
+      else if (c == '\\')
+      {
+        prev = ST_NORMAL;
+        st = ST_ESCAPE;
+      }
       else
       {
         buffer[bi++] = c;
@@ -113,10 +120,27 @@ ParsedCommand parse_command(char *line)
       {
         st = ST_NORMAL;
       }
+      else if (c == '\\')
+      {
+        char next = *p;
+        if (next == '"' || next == '\\' || next == '`' || next == '$' || next == '*' || next == '?' || next == '\n')
+        {
+          buffer[bi++] = next;
+          p++;
+        }
+        else
+        {
+          buffer[bi++] = '\\';
+        }
+      }
       else
       {
         buffer[bi++] = c;
       }
+      break;
+    case ST_ESCAPE:
+      buffer[bi++] = c;
+      st = prev;
       break;
     }
   }
