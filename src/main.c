@@ -198,8 +198,8 @@ bool is_redirection(const char* token) {
     }
 
     return strcmp(token, ">") == 0 || strcmp(token, "1>") == 0 ||
-           strcmp(token, ">>") == 0 || strcmp(token, "2>") == 0 ||
-           strcmp(token, "2>>") == 0;
+           strcmp(token, ">>") == 0 || strcmp(token, ">>") == 0 ||
+           strcmp(token, "2>") == 0 || strcmp(token, "2>>") == 0;
 }
 
 Redirection parse_redirection(const char* token, char* next_token, bool* ok) {
@@ -214,7 +214,7 @@ Redirection parse_redirection(const char* token, char* next_token, bool* ok) {
     if (strcmp(token, ">") == 0 || strcmp(token, "1>") == 0) {
         out.target_fd = 1;
         out.mode = TRUNC;
-    } else if (strcmp(token, ">>") == 0) {
+    } else if (strcmp(token, ">>") == 0 || strcmp(token, "1>>") == 0) {
         out.target_fd = 1;
         out.mode = APPEND;
     } else if (strcmp(token, "2>") == 0) {
