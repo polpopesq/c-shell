@@ -198,7 +198,7 @@ bool is_redirection(const char* token) {
     }
 
     return strcmp(token, ">") == 0 || strcmp(token, "1>") == 0 ||
-           strcmp(token, ">>") == 0 || strcmp(token, ">>") == 0 ||
+           strcmp(token, ">>") == 0 || strcmp(token, "1>>") == 0 ||
            strcmp(token, "2>") == 0 || strcmp(token, "2>>") == 0;
 }
 
