@@ -31,8 +31,17 @@ typedef int (*history_op_func)(const char* filename);
 
 int history_read_op(const char* filename) { return read_history(filename); }
 int history_write_op(const char* filename) { return write_history(filename); }
+
+static int last_append_index = 0;
 int history_append_op(const char* filename) {
-    return append_history(history_length, filename);
+    int new_entries = history_length - last_append_index;
+    if (new_entries <= 0) return 0;
+
+    int result = append_history(new_entries, filename);
+    if (result == 0) {
+        last_append_index = history_length;
+    }
+    return result;
 }
 
 typedef struct {
