@@ -2,7 +2,7 @@
 
 #include "shell.h"
 
-int exec_echo(const ParsedCommand* command) {
+int exec_echo(const Command* command) {
     for (int i = 1; i < command->argc; i++) {
         printf("%s ", command->argv[i]);
     }

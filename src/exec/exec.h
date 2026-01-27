@@ -3,6 +3,6 @@
 
 #include "shell.h"
 
-int execute_command(const ParsedCommand* cmd);
+int execute_pipeline(const Pipeline* pl);
 
 #endif

@@ -34,9 +34,10 @@ char** lex_tokens(char* line) {
         switch (st) {
             case ST_NORMAL:
                 if (c == ' ') {
-                    if (bi > 0) {
-                        emit_token(&tokens, &ntokens, buffer, &bi);
-                    }
+                    if (bi > 0) emit_token(&tokens, &ntokens, buffer, &bi);
+                } else if (c == '|') {
+                    if (bi > 0) emit_token(&tokens, &ntokens, buffer, &bi);
+                    tokens[ntokens++] = strdup("|");
                 } else if (c == '\'') {
                     st = ST_SQUOTE;
                 } else if (c == '"') {

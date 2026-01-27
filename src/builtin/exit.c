@@ -4,7 +4,7 @@
 
 #include "shell.h"
 
-int exec_exit(const ParsedCommand* cmd) {
+int exec_exit(const Command* cmd) {
     int code = 0;  // default exit code
 
     // If user provides an argument: exit <code>

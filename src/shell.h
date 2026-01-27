@@ -14,23 +14,27 @@
 
 typedef struct {
     int target_fd;
-    enum { TRUNC, APPEND } mode;
+    enum { TRUNC, APPEND, READ } mode;
     char* filename;
 } Redirection;
 
 typedef struct {
-    char* cmd;
     char* argv[MAX_ARGV];
     int argc;
     Redirection redirections[MAX_REDIR];
     int redirc;
-} ParsedCommand;
+} Command;
 
 typedef struct {
     char** items;
     size_t count;
     size_t capacity;
 } StringList;
+
+typedef struct {
+    Command* cmds;
+    size_t count;
+} Pipeline;
 
 void list_init(StringList* list, size_t initial_capacity);
 void list_append(StringList* list, const char* s);

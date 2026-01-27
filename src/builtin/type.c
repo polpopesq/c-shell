@@ -6,7 +6,7 @@
 #include "exec/path.h"
 #include "shell.h"
 
-int exec_type(const ParsedCommand* cmd) {
+int exec_type(const Command* cmd) {
     if (cmd->argc < 2 || cmd->argv[1] == NULL) {
         return 2;
     }

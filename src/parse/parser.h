@@ -3,7 +3,7 @@
 
 #include "shell.h"
 
-ParsedCommand parse_command(char* line);
-void free_parsed_command(ParsedCommand* pc);
+Pipeline parse_pipeline(char* line);
+void free_pipeline(Pipeline* pl);
 
 #endif

@@ -9,6 +9,7 @@
 #include "parse/parser.h"
 #include "util/scanners.h"
 
+// sample line: cat < in.txt | grep foo | wc -l >> out.txt
 int main(void) {
     build_path_cache();
     readline_init();
@@ -19,9 +20,9 @@ int main(void) {
         if (!line) break;
 
         if (*line) {
-            ParsedCommand cmd = parse_command(line);
-            execute_command(&cmd);
-            free_parsed_command(&cmd);
+            Pipeline pipeline = parse_pipeline(line);
+            execute_pipeline(&pipeline);
+            free_pipeline(&pipeline);
         }
 
         free(line);

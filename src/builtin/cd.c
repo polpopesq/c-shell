@@ -6,7 +6,7 @@
 
 #include "shell.h"
 
-int exec_cd(const ParsedCommand* cmd) {
+int exec_cd(const Command* cmd) {
     const char* target = cmd->argv[1];
     if (target == NULL || (strcmp(target, "~") == 0)) {
         target = getenv("HOME");

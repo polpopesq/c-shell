@@ -15,7 +15,7 @@ void restore_fds(int saved_fds[3]) {
     close(saved_fds[2]);
 }
 
-int apply_redirections(const ParsedCommand* cmd, int saved_fds[3]) {
+int apply_redirections(const Command* cmd, int saved_fds[3]) {
     if (saved_fds != NULL) {
         saved_fds[0] = dup(STDIN_FILENO);
         saved_fds[1] = dup(STDOUT_FILENO);
@@ -29,11 +29,14 @@ int apply_redirections(const ParsedCommand* cmd, int saved_fds[3]) {
 
     for (int i = 0; i < cmd->redirc; ++i) {
         const Redirection* r = &cmd->redirections[i];
-        int flags = O_WRONLY | O_CREAT;
-        if (r->mode == TRUNC) {
-            flags |= O_TRUNC;
-        } else {
-            flags |= O_APPEND;
+        int flags = O_RDONLY;
+        if (r->mode != READ) {
+            flags = O_WRONLY | O_CREAT;
+            if (r->mode == TRUNC) {
+                flags |= O_TRUNC;
+            } else {
+                flags |= O_APPEND;
+            }
         }
 
         int fd = open(r->filename, flags, 0644);

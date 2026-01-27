@@ -3,15 +3,15 @@
 
 #include "shell.h"  // for ParsedCommand
 
-typedef int (*builtin_func)(const ParsedCommand*);
+typedef int (*builtin_func)(const Command*);
 
 builtin_func find_builtin(const char* name);
 
 /* builtin declarations */
-int exec_cd(const ParsedCommand*);
-int exec_pwd(const ParsedCommand*);
-int exec_echo(const ParsedCommand*);
-int exec_exit(const ParsedCommand*);
-int exec_type(const ParsedCommand*);
+int exec_cd(const Command*);
+int exec_pwd(const Command*);
+int exec_echo(const Command*);
+int exec_exit(const Command*);
+int exec_type(const Command*);
 
 #endif

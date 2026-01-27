@@ -5,7 +5,7 @@
 
 #include "shell.h"
 
-int exec_pwd(const ParsedCommand* cmd) {
+int exec_pwd(const Command* cmd) {
     char* buffer = getcwd(NULL, 0);
     if (buffer == NULL) {
         perror("getcwd");

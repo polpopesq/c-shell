@@ -3,7 +3,7 @@
 
 #include "shell.h"
 
-int apply_redirections(const ParsedCommand*, int saved_fds[3]);
+int apply_redirections(const Command*, int saved_fds[3]);
 void restore_fds(int saved_fds[3]);
 
 #endif
