@@ -6,8 +6,8 @@
 #include "input.h"
 #include "util/scanners.h"
 
-static const char* builtin_candidates[] = {"echo", "cd",   "pwd",
-                                           "type", "exit", NULL};
+static const char* builtin_candidates[] = {"echo", "cd",      "pwd", "type",
+                                           "exit", "history", NULL};
 
 char* builtin_generator(const char* text, int state) {
     // static iteration index because generator is called multiple times

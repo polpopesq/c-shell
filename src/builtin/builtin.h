@@ -13,5 +13,6 @@ int exec_pwd(const Command*);
 int exec_echo(const Command*);
 int exec_exit(const Command*);
 int exec_type(const Command*);
+int exec_history(const Command*);
 
 #endif
