@@ -20,6 +20,8 @@ void build_path_cache(void) {
     path_cache = scan_path();
 }
 
+void free_path_cache(void) { free_string_list(&path_cache); }
+
 /* ------------------------------------------------------------ */
 /* PATH scanning (WSL-optimized)                                */
 /* ------------------------------------------------------------ */

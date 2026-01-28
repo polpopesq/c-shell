@@ -101,5 +101,5 @@ void initialize_history() {
 
 void save_history() {
     const char* HISTFILE_PATH = getenv("HISTFILE");
-    write_history(HISTFILE_PATH);
+    append_history(history_length, HISTFILE_PATH);
 }

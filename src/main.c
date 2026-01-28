@@ -10,12 +10,15 @@
 #include "parse/parser.h"
 #include "util/scanners.h"
 
+static void shell_cleanup() { save_history(); }
+
+// sample line: cat < in.txt | grep foo | wc -l >> out.txt
 int main(void) {
     build_path_cache();
     readline_init();
-    char* line;
-
     initialize_history();
+    atexit(shell_cleanup);
+    char* line;
 
     while (1) {
         line = read_command_line();
@@ -29,7 +32,5 @@ int main(void) {
 
         free(line);
     }
-
-    save_history();
     return 0;
-}
+}  // TODO: save history on exit, clean resources on exit, listen to exit signal
