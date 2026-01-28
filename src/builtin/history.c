@@ -98,3 +98,8 @@ void initialize_history() {
     const char* HISTFILE_PATH = getenv("HISTFILE");
     read_history(HISTFILE_PATH);
 }
+
+void save_history() {
+    const char* HISTFILE_PATH = getenv("HISTFILE");
+    write_history(HISTFILE_PATH);
+}

@@ -29,5 +29,7 @@ int main(void) {
 
         free(line);
     }
+
+    save_history();
     return 0;
 }

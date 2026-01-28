@@ -15,5 +15,6 @@ int exec_exit(const Command*);
 int exec_type(const Command*);
 int exec_history(const Command*);
 void initialize_history();
+void save_history();
 
 #endif
