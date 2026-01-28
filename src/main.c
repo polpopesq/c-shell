@@ -4,16 +4,18 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "builtin/builtin.h"
 #include "exec/exec.h"
 #include "input/input.h"
 #include "parse/parser.h"
 #include "util/scanners.h"
 
-// sample line: cat < in.txt | grep foo | wc -l >> out.txt
 int main(void) {
     build_path_cache();
     readline_init();
     char* line;
+
+    initialize_history();
 
     while (1) {
         line = read_command_line();

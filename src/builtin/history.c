@@ -29,9 +29,9 @@ void print_history(int limit) {
 
 typedef int (*history_op_func)(const char* filename);
 
+// NOT thread-safe!
 int history_read_op(const char* filename) { return read_history(filename); }
 int history_write_op(const char* filename) { return write_history(filename); }
-
 static int last_append_index = 0;
 int history_append_op(const char* filename) {
     int new_entries = history_length - last_append_index;
@@ -92,4 +92,9 @@ int exec_history(const Command* c) {
         print_history(history_limit);
     }
     return 0;
+}
+
+void initialize_history() {
+    const char* HISTFILE_PATH = getenv("HISTFILE");
+    read_history(HISTFILE_PATH);
 }
