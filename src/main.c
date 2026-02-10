@@ -33,4 +33,4 @@ int main(void) {
         free(line);
     }
     return 0;
-}  // TODO: save history on exit, clean resources on exit, listen to exit signal
+}
