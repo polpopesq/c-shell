@@ -40,11 +40,13 @@ cat file.txt | grep foo | wc -l
 
 ### Redirections 
 #### Input and output redirection:
-- < (stdin)
-- > / 1> (stdout truncate)
-- >> / 1>> (stdout append)
-- 2> / 2>> (stderr)
+- `<` (stdin)
+- `>` / `1>` (stdout truncate)
+- `>>` / `1>>` (stdout append)
+- `2>` / `2>>` (stderr)  
+
 Redirections override pipe file descriptors when present
+
 
 ### Line editing & history
 - Uses GNU Readline
